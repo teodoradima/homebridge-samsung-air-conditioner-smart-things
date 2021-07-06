@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "HomebridgeSamsungACSmartThings",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,7 +9,13 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "homebridge-samsung-air-conditioner-smart-things"
+      },
+      "token": {
+        "title": "Token",
+        "type": "string",
+        "required": true,
+        "default": ""
       }
     }
   }

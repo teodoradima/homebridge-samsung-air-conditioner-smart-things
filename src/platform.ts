@@ -31,8 +31,7 @@ export class SamsungAC implements DynamicPlatformPlugin {
   }
 
   discoverDevices() {
-    const token = 'ef7a9c71-ef1a-4864-8bc9-7265b5deb355';
-    SamsungAPI.getDevices(token).then(samsungDevices => {
+    SamsungAPI.getDevices(this.config.token).then(samsungDevices => {
       for (const device of samsungDevices) {
         const uuid = this.api.hap.uuid.generate(device.deviceId.toString());
   
@@ -40,6 +39,7 @@ export class SamsungAC implements DynamicPlatformPlugin {
   
         if (existingAccessory) {
           this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+          existingAccessory.context.token = this.config.token;
   
           new SamsungACPlatformAccessory(this, existingAccessory);
         } else {
@@ -48,7 +48,7 @@ export class SamsungAC implements DynamicPlatformPlugin {
           const accessory = new this.api.platformAccessory(device.label, uuid);
   
           accessory.context.device = device;
-          accessory.context.token = token;
+          accessory.context.token = this.config.token;
   
           new SamsungACPlatformAccessory(this, accessory);
   
