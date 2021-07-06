@@ -1,5 +1,5 @@
 {
-  "private": true,
+  "private": false,
   "displayName": "Samsung Air Conditioner - Smart Things Homebridge Plugin",
   "name": "homebridge-samsung-air-conditioner-smart-things",
   "version": "1.0.0",
