@@ -11,6 +11,14 @@ export class SamsungACPlatformAccessory {
     Off: 'off',
   };
 
+  private deviceMode = {
+    Cool: 'cool',
+    Heat: 'heat',
+    Dry: 'dry',
+    Fan: 'wind',
+    Auto: 'auto'
+  };
+
   constructor(
     private readonly platform: SamsungAC,
     private readonly accessory: PlatformAccessory,
@@ -40,6 +48,24 @@ export class SamsungACPlatformAccessory {
 
     this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .onGet(this.handleCurrentTemperatureGet.bind(this));
+
+    this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+      .setProps({
+        minValue: 16,
+        maxValue: 30,
+        minStep: 1
+      })
+      .onSet(this.handleCoolingTemperatureSet.bind(this))
+      .onGet(this.handleCoolingTemperatureGet.bind(this));
+
+      this.service.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
+      .setProps({
+        minValue: 16,
+        maxValue: 30,
+        minStep: 1
+      })
+      .onSet(this.handleCoolingTemperatureSet.bind(this))
+      .onGet(this.handleCoolingTemperatureGet.bind(this));
   }
 
   /**
@@ -56,7 +82,6 @@ export class SamsungACPlatformAccessory {
    * Handle requests to set the "Active" characteristic
    */
   async handleActiveSet(value) {
-    console.log(value + " value");
     let statusValue = value === 1 ? this.states.On : this.states.Off ;
     await SamsungAPI.setDeviceStatus(this.accessory.context.device.deviceId, statusValue, this.accessory.context.token);
   }
@@ -64,9 +89,25 @@ export class SamsungACPlatformAccessory {
   /**
    * Handle requests to get the current value of the "Current Heater-Cooler State" characteristic
    */
-  handleCurrentHeaterCoolerStateGet() {
+  async handleCurrentHeaterCoolerStateGet() {
     // set this to a valid value for CurrentHeaterCoolerState
-    const currentValue = this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE;
+    let currentValue = this.platform.Characteristic.CurrentHeaterCoolerState.IDLE;
+    let deviceMode = await SamsungAPI.getDeviceMode(this.accessory.context.device.deviceId, this.accessory.context.token);
+    switch (deviceMode){
+      case this.deviceMode.Dry:
+      case this.deviceMode.Cool: {
+        currentValue = this.platform.Characteristic.CurrentHeaterCoolerState.COOLING;
+        break;
+      } 
+      case this.deviceMode.Heat: {
+        currentValue = this.platform.Characteristic.CurrentHeaterCoolerState.HEATING;
+        break;
+      }
+      case this.deviceMode.Fan: {
+        currentValue = this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE;
+        break;
+      }
+    }
 
     return currentValue;
   }
@@ -75,9 +116,21 @@ export class SamsungACPlatformAccessory {
   /**
    * Handle requests to get the current value of the "Target Heater-Cooler State" characteristic
    */
-  handleTargetHeaterCoolerStateGet() {
+  async handleTargetHeaterCoolerStateGet() {
     // set this to a valid value for TargetHeaterCoolerState
-    const currentValue = this.platform.Characteristic.TargetHeaterCoolerState.AUTO;
+    let currentValue = this.platform.Characteristic.TargetHeaterCoolerState.AUTO;
+    let deviceMode = await SamsungAPI.getDeviceMode(this.accessory.context.device.deviceId, this.accessory.context.token);
+    switch (deviceMode){
+      case this.deviceMode.Dry:
+      case this.deviceMode.Cool: {
+        currentValue = this.platform.Characteristic.TargetHeaterCoolerState.COOL;
+        break;
+      } 
+      case this.deviceMode.Heat: {
+        currentValue = this.platform.Characteristic.TargetHeaterCoolerState.HEAT;
+        break;
+      }
+    }
 
     return currentValue;
   }
@@ -85,8 +138,21 @@ export class SamsungACPlatformAccessory {
   /**
    * Handle requests to set the "Target Heater-Cooler State" characteristic
    */
-  handleTargetHeaterCoolerStateSet(value) {
-    // do something
+  async handleTargetHeaterCoolerStateSet(value) {
+    console.log(value + " value");
+    let modeValue = this.deviceMode.Auto;
+    switch (value){
+      case this.platform.Characteristic.TargetHeaterCoolerState.COOL: {
+        modeValue = this.deviceMode.Cool;
+        break;
+      } 
+      case this.platform.Characteristic.TargetHeaterCoolerState.HEAT: {
+        modeValue = this.deviceMode.Heat;
+        break;
+      }
+    }
+
+    await SamsungAPI.setDeviceMode(this.accessory.context.device.deviceId, modeValue, this.accessory.context.token);
   }
 
   /**
@@ -96,5 +162,16 @@ export class SamsungACPlatformAccessory {
     // set this to a valid value for CurrentTemperature
     let temperature = await SamsungAPI.getDeviceTemperature(this.accessory.context.device.deviceId, this.accessory.context.token);
     return temperature;
+  }
+
+  async handleCoolingTemperatureGet() {
+    // get value for DesiredTemperature
+    let temperature = await SamsungAPI.getDesiredTemperature(this.accessory.context.device.deviceId, this.accessory.context.token);
+    return temperature;
+  }
+
+  async handleCoolingTemperatureSet(temp) {
+    // set this to a valid value for DesiredTemperature
+    await SamsungAPI.setDesiredTemperature(this.accessory.context.device.deviceId, temp, this.accessory.context.token);
   }
 }

@@ -30,4 +30,30 @@ export class SamsungAPI {
     const { data: { temperature = { } } = {} } = await Axios.get(`https://api.smartthings.com/v1/devices/${deviceId}/components/main/capabilities/temperatureMeasurement/status`, this.setToken(token));
     return temperature.value;
   }
+
+  static async getDeviceMode(deviceId, token) {
+    const { data: { airConditionerMode = { } } = {} } = await Axios.get(`https://api.smartthings.com/v1/devices/${deviceId}/components/main/capabilities/airConditionerMode/status`, this.setToken(token));
+    return airConditionerMode.value;
+  }
+
+  static async setDeviceMode(deviceId, mode, token) {
+    let data = {
+      "commands" : [{"capability": "airConditionerMode", "command": "setAirConditionerMode", "argument": [mode]}]
+    };
+
+    await Axios.post(`https://api.smartthings.com/v1/devices/${deviceId}/commands`, data, this.setToken(token));
+  }
+
+  static async getDesiredTemperature(deviceId, token) {
+    const { data: { coolingSetpoint = { } } = {} } = await Axios.get(`https://api.smartthings.com/v1/devices/${deviceId}/components/main/capabilities/thermostatCoolingSetpoint/status`, this.setToken(token));
+    return coolingSetpoint.value;
+  }
+
+  static async setDesiredTemperature(deviceId, temperature, token) {
+    let data = {
+      "commands" : [{"capability": "thermostatCoolingSetpoint", "command": "setCoolingSetpoint", "argument": [temperature]}]
+    };
+
+    await Axios.post(`https://api.smartthings.com/v1/devices/${deviceId}/commands`, data, this.setToken(token));
+  }
 }
