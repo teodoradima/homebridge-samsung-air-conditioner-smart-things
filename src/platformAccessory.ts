@@ -1,7 +1,7 @@
 import { Service, PlatformAccessory } from 'homebridge';
 
 import { SamsungAC } from './platform';
-
+import { SamsungAPI } from './samsungApi';
 
 export class SamsungACPlatformAccessory {
   private service: Service;
@@ -16,7 +16,6 @@ export class SamsungACPlatformAccessory {
     private readonly accessory: PlatformAccessory,
     // public readonly log: Logger,
   ) {
-
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, accessory.context.device.manufacturerName)
       .setCharacteristic(this.platform.Characteristic.Model, accessory.context.device.deviceTypeName)
@@ -28,7 +27,7 @@ export class SamsungACPlatformAccessory {
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.label);
 
     // register handlers for the On/Off Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.On)
+    this.service.getCharacteristic(this.platform.Characteristic.Active)
       .onSet(this.handleActiveSet.bind(this))
       .onGet(this.handleActiveGet.bind(this));
 
@@ -46,18 +45,20 @@ export class SamsungACPlatformAccessory {
   /**
    * Handle requests to get the current value of the "Active" characteristic
    */
-  handleActiveGet() {
+  async handleActiveGet() {
     // set this to a valid value for Active
     const currentValue = this.platform.Characteristic.Active.INACTIVE;
-
-    return currentValue;
+    let status = await SamsungAPI.getDeviceStatus(this.accessory.context.device.deviceId, this.accessory.context.token);
+    return status === this.states.Off ? currentValue : this.platform.Characteristic.Active.ACTIVE;
   }
 
   /**
    * Handle requests to set the "Active" characteristic
    */
-  handleActiveSet(value) {
-    // do something
+  async handleActiveSet(value) {
+    console.log(value + " value");
+    let statusValue = value === 1 ? this.states.On : this.states.Off ;
+    await SamsungAPI.setDeviceStatus(this.accessory.context.device.deviceId, statusValue, this.accessory.context.token);
   }
 
   /**
@@ -91,10 +92,9 @@ export class SamsungACPlatformAccessory {
   /**
    * Handle requests to get the current value of the "Current Temperature" characteristic
    */
-  handleCurrentTemperatureGet() {
+  async handleCurrentTemperatureGet() {
     // set this to a valid value for CurrentTemperature
-    const currentValue = -270;
-
-    return currentValue;
+    let temperature = await SamsungAPI.getDeviceTemperature(this.accessory.context.device.deviceId, this.accessory.context.token);
+    return temperature;
   }
 }

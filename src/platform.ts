@@ -16,11 +16,11 @@ export class SamsungAC implements DynamicPlatformPlugin {
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
-    this.log.debug('Finished initializing platform:', this.config.name);
+     this.log.info('Finished initializing platform:');
 
-    this.api.on('didFinishLaunching', async () => {
+    this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
-      await this.discoverDevices();
+      this.discoverDevices();
     });
   }
 
@@ -30,29 +30,31 @@ export class SamsungAC implements DynamicPlatformPlugin {
     this.accessories.push(accessory);
   }
 
-  async discoverDevices() {
-    const samsungDevices = await SamsungAPI.getDevices('ef7a9c71-ef1a-4864-8bc9-7265b5deb355');
-
-    for (const device of samsungDevices) {
-      const uuid = this.api.hap.uuid.generate(device.deviceId);
-
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
-
-      if (existingAccessory) {
-        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-
-        new SamsungACPlatformAccessory(this, existingAccessory, this.log);
-      } else {
-        this.log.info('Adding new accessory:', device.label);
-
-        const accessory = new this.api.platformAccessory(device.label, uuid);
-
-        accessory.context.device = device;
-
-        new SamsungACPlatformAccessory(this, accessory, this.log);
-
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+  discoverDevices() {
+    const token = 'ef7a9c71-ef1a-4864-8bc9-7265b5deb355';
+    SamsungAPI.getDevices(token).then(samsungDevices => {
+      for (const device of samsungDevices) {
+        const uuid = this.api.hap.uuid.generate(device.deviceId.toString());
+  
+        const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+  
+        if (existingAccessory) {
+          this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+  
+          new SamsungACPlatformAccessory(this, existingAccessory);
+        } else {
+          this.log.info('Adding new accessory:', device.label);
+  
+          const accessory = new this.api.platformAccessory(device.label, uuid);
+  
+          accessory.context.device = device;
+          accessory.context.token = token;
+  
+          new SamsungACPlatformAccessory(this, accessory);
+  
+          this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        }
       }
-    }
+    });
   }
 }
