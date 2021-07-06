@@ -16,7 +16,7 @@ export class SamsungAC implements DynamicPlatformPlugin {
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
-     this.log.info('Finished initializing platform:');
+    this.log.info('Finished initializing platform:');
 
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
@@ -34,24 +34,24 @@ export class SamsungAC implements DynamicPlatformPlugin {
     SamsungAPI.getDevices(this.config.token).then(samsungDevices => {
       for (const device of samsungDevices) {
         const uuid = this.api.hap.uuid.generate(device.deviceId.toString());
-  
+
         const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
-  
+
         if (existingAccessory) {
           this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
           existingAccessory.context.token = this.config.token;
-  
+
           new SamsungACPlatformAccessory(this, existingAccessory);
         } else {
           this.log.info('Adding new accessory:', device.label);
-  
+
           const accessory = new this.api.platformAccessory(device.label, uuid);
-  
+
           accessory.context.device = device;
           accessory.context.token = this.config.token;
-  
+
           new SamsungACPlatformAccessory(this, accessory);
-  
+
           this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
         }
       }
