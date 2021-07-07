@@ -43,7 +43,7 @@ export class SamsungAPI {
 
   static async setDeviceMode(deviceId, mode, token) {
     const data = {
-      'commands' : [{'capability': 'airConditionerMode', 'command': 'setAirConditionerMode', 'argument': [mode]}],
+      'commands' : [{'capability': 'airConditionerMode', 'command': 'setAirConditionerMode', 'arguments': [mode]}],
     };
 
     await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
@@ -58,7 +58,7 @@ export class SamsungAPI {
 
   static async setDesiredTemperature(deviceId, temperature, token) {
     const data = {
-      'commands' : [{'capability': 'thermostatCoolingSetpoint', 'command': 'setCoolingSetpoint', 'argument': [temperature]}],
+      'commands' : [{'capability': 'thermostatCoolingSetpoint', 'command': 'setCoolingSetpoint', 'arguments': [temperature]}],
     };
 
     await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
