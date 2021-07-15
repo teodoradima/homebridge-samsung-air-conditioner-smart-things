@@ -40,6 +40,7 @@ export class SamsungAC implements DynamicPlatformPlugin {
         if (existingAccessory) {
           this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
           existingAccessory.context.token = this.config.token;
+          existingAccessory.context.temperatureUnit = this.config.temperatureUnit;
 
           new SamsungACPlatformAccessory(this, existingAccessory);
         } else {
@@ -49,6 +50,7 @@ export class SamsungAC implements DynamicPlatformPlugin {
 
           accessory.context.device = device;
           accessory.context.token = this.config.token;
+          accessory.context.temperatureUnit = this.config.temperatureUnit;
 
           new SamsungACPlatformAccessory(this, accessory);
 

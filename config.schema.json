@@ -16,6 +16,12 @@
         "type": "string",
         "required": true,
         "default": ""
+      },
+      "temperatureUnit": {
+        "title": "Temperature unit",
+        "type": "string",
+        "required": true,
+        "default": "C"
       }
     }
   }

@@ -49,21 +49,27 @@ export class SamsungACPlatformAccessory {
     this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .onGet(this.handleCurrentTemperatureGet.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
-      .setProps({
-        minValue: 16,
-        maxValue: 30,
+    let threshholdProps = {
+      minValue: 16,
+      maxValue: 30,
+      minStep: 1,
+    }
+
+    if(this.accessory.context.temperatureUnit === "F"){
+      threshholdProps = {
+        minValue: 60,
+        maxValue: 86,
         minStep: 1,
-      })
+      }
+    }
+
+    this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+      .setProps(threshholdProps)
       .onSet(this.handleCoolingTemperatureSet.bind(this))
       .onGet(this.handleCoolingTemperatureGet.bind(this));
 
     this.service.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
-      .setProps({
-        minValue: 16,
-        maxValue: 30,
-        minStep: 1,
-      })
+      .setProps(threshholdProps)
       .onSet(this.handleCoolingTemperatureSet.bind(this))
       .onGet(this.handleCoolingTemperatureGet.bind(this));
   }
@@ -159,18 +165,30 @@ export class SamsungACPlatformAccessory {
    */
   async handleCurrentTemperatureGet() {
     // set this to a valid value for CurrentTemperature
-    const temperature = await SamsungAPI.getDeviceTemperature(this.accessory.context.device.deviceId, this.accessory.context.token);
+    let temperature = await SamsungAPI.getDeviceTemperature(this.accessory.context.device.deviceId, this.accessory.context.token);
+    if(this.accessory.context.temperatureUnit === "F"){
+      temperature = this.toCelsius(temperature);
+    }
+
     return temperature;
   }
 
   async handleCoolingTemperatureGet() {
     // get value for DesiredTemperature
-    const temperature = await SamsungAPI.getDesiredTemperature(this.accessory.context.device.deviceId, this.accessory.context.token);
+    let temperature = await SamsungAPI.getDesiredTemperature(this.accessory.context.device.deviceId, this.accessory.context.token);
+    if(this.accessory.context.temperatureUnit === "F"){
+      temperature = this.toCelsius(temperature);
+    }
+
     return temperature;
   }
 
   async handleCoolingTemperatureSet(temp) {
     // set this to a valid value for DesiredTemperature
-    await SamsungAPI.setDesiredTemperature(this.accessory.context.device.deviceId, temp, this.accessory.context.token);
+    await SamsungAPI.setDesiredTemperature(this.accessory.context.device.deviceId, 86, this.accessory.context.token);
+  }
+
+  private toCelsius(fTemperature){
+    return (5/9) * (fTemperature - 32);
   }
 }
