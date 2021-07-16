@@ -55,14 +55,6 @@ export class SamsungACPlatformAccessory {
       minStep: 1,
     };
 
-    if (this.accessory.context.temperatureUnit === 'F') {
-      threshholdProps = {
-        minValue: 60,
-        maxValue: 86,
-        minStep: 1,
-      };
-    }
-
     this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
       .setProps(threshholdProps)
       .onSet(this.handleCoolingTemperatureSet.bind(this))
