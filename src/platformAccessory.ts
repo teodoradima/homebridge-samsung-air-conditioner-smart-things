@@ -49,7 +49,7 @@ export class SamsungACPlatformAccessory {
     this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .onGet(this.handleCurrentTemperatureGet.bind(this));
 
-    let threshholdProps = {
+    const threshholdProps = {
       minValue: 16,
       maxValue: 30,
       minStep: 1,
