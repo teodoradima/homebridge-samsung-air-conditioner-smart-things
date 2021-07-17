@@ -241,7 +241,7 @@ export class SamsungACPlatformAccessory {
   }
 
   private toCelsius(fTemperature) {
-    return (5/9) * (fTemperature - 32);
+    return Math.round((5/9) * (fTemperature - 32));
   }
 
   private toFahrenheit(cTemperature){
