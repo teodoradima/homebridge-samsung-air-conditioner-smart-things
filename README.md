@@ -5,11 +5,12 @@ Homebridge plugin for controlling Samsung Air Conditioner using the [smartthings
 ## Installation 
 1. Install [Homebridge](https://github.com/nfarina/homebridge).
 2. Install this plugin by running `npm install -g homebridge-samsung-air-conditioner-smart-things`.
-3. Setup your Air conditioner devices in the smartthings app
+3. Setup your Air conditioner devices in the smartthings app.
 4. Login and generate a new [token](https://account.smartthings.com/tokens#) for the smartthings api. 
      - Make sure you select all scopes in the devices section.
-     - Make sure you can see the devices you want to use for the current user, in the ["My Devices" tab](https://account.smartthings.com/) 
-5. Copy the token and paste it in the token property of the plugin (config.json). 
+     - Make sure you can see the devices you want to use for the current user, in the ["My Devices" tab](https://account.smartthings.com/).
+5. Copy the token and paste it in the token property of the plugin (config.json).
+6. [Optional] In case your smartthings account returns the temperature in Fahrenheit, set the Temperature unit config property to F and also make sure that your device in HomeKit is also set to Fahrenheit. Otherwise leave the default value for Temperature unit.
 
 ## Features
 - Import all AC devices in your smartthings account

@@ -232,10 +232,7 @@ export class SamsungACPlatformAccessory {
   async handleCoolingTemperatureSet(temp) {
     // set this to a valid value for DesiredTemperature
     if (this.accessory.context.temperatureUnit === 'F') {
-      this.platform.log.info('Set target temperature to: ' + temp);
-      if(temp < 60){
-        temp = this.toFahrenheit(temp);
-      }
+      temp = this.toFahrenheit(temp);
     }
     await SamsungAPI.setDesiredTemperature(this.accessory.context.device.deviceId, temp, this.accessory.context.token);
   }
