@@ -59,6 +59,54 @@ export class SamsungAPI {
     await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
   }
 
+  static async getFanMode(deviceId, token) {
+    const {
+      data: { fanMode = { } } = {},
+    } = await Axios.get(`${HOST}/${deviceId}/components/main/capabilities/airConditionerFanMode/status`, this.setToken(token));
+    return fanMode.value;
+  }
+
+  static async setFanMode(deviceId, mode, token) {
+    // possible values: 'auto', 'low', 'medium', 'high', 'turbo'
+    const data = {
+      'commands' : [{'capability': 'airConditionerFanMode', 'command': 'setFanMode', 'arguments': [mode]}],
+    };
+
+    await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
+  }
+
+  static async getFanOscillationMode(deviceId, token) {
+    const {
+      data: { fanOscillationMode = { } } = {},
+    } = await Axios.get(`${HOST}/${deviceId}/components/main/capabilities/fanOscillationMode/status`, this.setToken(token));
+    return fanOscillationMode.value;
+  }
+
+  static async setFanOscillationMode(deviceId, mode, token) {
+    // possible values: 'all', 'fixed', 'vertical', 'horizontal', 'indirect', 'direct', 'fixedCenter', 'fixedLeft', 'fixedRight', 'far'
+    const data = {
+      'commands' : [{'capability': 'fanOscillationMode', 'command': 'setFanOscillationMode', 'arguments': [mode]}],
+    };
+
+    await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
+  }
+
+  static async getWindFreeMode(deviceId, token) {
+    const {
+      data: { acOptionalMode = { } } = {},
+    } = await Axios.get(`${HOST}/${deviceId}/components/main/capabilities/custom.airConditionerOptionalMode/status`, this.setToken(token));
+    return acOptionalMode.value;
+  }
+
+  static async setWindFreeMode(deviceId, mode, token) {
+    // possible values: 'off', 'windFree'
+    const data = {
+      'commands' : [{'capability': 'custom.airConditionerOptionalMode', 'command': 'setAcOptionalMode', 'arguments': [mode]}],
+    };
+
+    await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
+  }
+
   static async getDesiredTemperature(deviceId, token) {
     const {
       data: { coolingSetpoint = { } } = {},
