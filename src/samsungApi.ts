@@ -1,8 +1,9 @@
 import Axios from 'axios';
 
 const AC_DEVICE_NAME = '[room a/c] Samsung';
-
 const HOST = 'https://api.smartthings.com/v1/devices';
+
+// Samsung API documentation: https://developer-preview.smartthings.com/docs/devices/capabilities/capabilities-reference/
 export class SamsungAPI {
   static setToken(token) {
     return { headers: { Authorization: `Bearer ${token}` } };
@@ -20,6 +21,7 @@ export class SamsungAPI {
   }
 
   static async setDeviceStatus(deviceId, status, token) {
+    // possible values: 'on', 'off'
     const data = {
       'commands' : [{'capability': 'switch', 'command': status}],
     };
@@ -42,6 +44,7 @@ export class SamsungAPI {
   }
 
   static async setDeviceMode(deviceId, mode, token) {
+    // possible modes: 'auto', 'dry', 'cool', 'heat', 'wind'
     const data = {
       'commands' : [{'capability': 'airConditionerMode', 'command': 'setAirConditionerMode', 'arguments': [mode]}],
     };
@@ -57,6 +60,7 @@ export class SamsungAPI {
   }
 
   static async setDesiredTemperature(deviceId, temperature, token) {
+    // data type: integer
     const data = {
       'commands' : [{'capability': 'thermostatCoolingSetpoint', 'command': 'setCoolingSetpoint', 'arguments': [temperature]}],
     };
