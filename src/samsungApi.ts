@@ -36,6 +36,13 @@ export class SamsungAPI {
     return temperature.value;
   }
 
+  static async getDeviceHumidity(deviceId, token) {
+    const {
+      data: { humidity = { } } = {},
+    } = await Axios.get(`${HOST}/${deviceId}/components/main/capabilities/relativeHumidityMeasurement/status`, this.setToken(token));
+    return humidity.value;
+  }
+
   static async getDeviceMode(deviceId, token) {
     const {
       data: { airConditionerMode = { } } = {},
