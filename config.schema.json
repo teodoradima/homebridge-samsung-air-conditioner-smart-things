@@ -28,6 +28,12 @@
         "type": "boolean",
         "required": true,
         "default": false
+      },
+      "windFreeSupported": {
+        "title": "Enable WindFree support",
+        "type": "boolean",
+        "required": true,
+        "default": false
       }
     }
   }

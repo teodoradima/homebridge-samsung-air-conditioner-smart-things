@@ -34,6 +34,11 @@ export class SamsungACPlatformAccessory {
     Fixed: 'fixed',
   };
 
+  private windFreeMode = {
+    Off: 'off', // maps to SWING_ENABLED
+    windFree: 'windFree', // maps to SWING_DISABLED
+  };
+
   private defaultTemperature = 21;
   private defaultHumidity = 40;
 
@@ -114,10 +119,24 @@ export class SamsungACPlatformAccessory {
       .onSet(this.handleTargetFanStateSet.bind(this))
       .onGet(this.handleTargetFanStateGet.bind(this));
 
-    // register handlers for the Fan Swing Mode Characteristic
-    this.fanV2Service.getCharacteristic(this.platform.Characteristic.SwingMode)
-      .onSet(this.handleSwingModeSet.bind(this))
-      .onGet(this.handleSwingModeGet.bind(this));
+    // If WindFree is available, the "oscillating" button in Home should control the windFree option.
+    // Otherwise, limited oscillation support is available
+    if (this.platform.config.windFreeSupported) {
+      //  register handlers for the WindFree Characteristic
+      this.fanV2Service.getCharacteristic(this.platform.Characteristic.SwingMode)
+        .onSet(this.handleWindFreeModeSet.bind(this))
+        .onGet(this.handleWindFreeModeGet.bind(this));
+
+      // register handlers for the Fan Swing Mode Characteristic
+      this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.SwingMode)
+        .onSet(this.handleSwingModeSet.bind(this))
+        .onGet(this.handleSwingModeGet.bind(this));
+    } else {
+      // register handlers for the Fan Swing Mode Characteristic
+      this.fanV2Service.getCharacteristic(this.platform.Characteristic.SwingMode)
+        .onSet(this.handleSwingModeSet.bind(this))
+        .onGet(this.handleSwingModeGet.bind(this));
+    }
 
     /**
      *  Humidity Service if enabled
@@ -336,8 +355,25 @@ export class SamsungACPlatformAccessory {
         this.fanV2Service.getCharacteristic(this.platform.Characteristic.Active)
           .updateValue(currentValue);
 
-        this.fanV2Service.getCharacteristic(this.platform.Characteristic.CurrentFanState)
-          .updateValue(this.platform.Characteristic.CurrentFanState.INACTIVE);
+        if (currentValue === this.platform.Characteristic.Active.ACTIVE) {
+          return this.handleWindFreeModeGet();
+        }
+      }).then((windFreeMode) => {
+        const currentState = this.platform.Characteristic.CurrentFanState;
+        let fanValue;
+        if (windFreeMode === undefined) {
+          // The fan is not active and the previous Promise did not return a new Promise
+          fanValue = currentState.INACTIVE;
+        } else if (this.platform.Characteristic.SwingMode.SWING_DISABLED) {
+          fanValue = currentState.IDLE;
+        } else {
+          // This value is also used if windFreeMode is not available
+          fanValue = currentState.BLOWING_AIR;
+        }
+
+        this.fanV2Service
+          .getCharacteristic(this.platform.Characteristic.CurrentFanState)
+          .updateValue(fanValue);
       }).catch((error) => {
         this.platform.log.warn(error);
       });
@@ -373,6 +409,7 @@ export class SamsungACPlatformAccessory {
             this.handleRotationSpeedGet();
           }
         });
+      // windFree mode (if supported) cannot be activated directly, the device will start in normal mode
       this.fanV2Service.getCharacteristic(this.platform.Characteristic.CurrentFanState)
         .updateValue(this.platform.Characteristic.CurrentFanState.BLOWING_AIR);
     } else {
@@ -520,6 +557,52 @@ export class SamsungACPlatformAccessory {
   }
 
   /**
+   * Handle requests to get the current value of the "Swing Mode" characteristic, used for the windFree support
+   */
+  async handleWindFreeModeGet() {
+    let currentValue = this.platform.Characteristic.SwingMode.SWING_ENABLED;
+    if (this.platform.config.windFreeSupported) {
+      // set this to a valid value for SwingMode
+      await SamsungAPI.getWindFreeMode(this.accessory.context.device.deviceId, this.accessory.context.token)
+        .then((windFreeMode) => {
+          if (windFreeMode === this.windFreeMode.windFree) {
+            currentValue = this.platform.Characteristic.SwingMode.SWING_DISABLED;
+            this.fanV2Service.getCharacteristic(this.platform.Characteristic.CurrentFanState)
+              .updateValue(this.platform.Characteristic.CurrentFanState.IDLE);
+          } else {
+            this.fanV2Service.getCharacteristic(this.platform.Characteristic.CurrentFanState)
+              .updateValue(this.platform.Characteristic.CurrentFanState.BLOWING_AIR);
+          }
+
+          this.fanV2Service.getCharacteristic(this.platform.Characteristic.SwingMode)
+            .updateValue(currentValue);
+        }).catch((error) => {
+          this.platform.log.warn(error);
+        });
+    }
+
+    return currentValue;
+  }
+
+  /**
+   * Handle requests to set the "Swing Mode" characteristic, used for the windFree support
+   */
+  async handleWindFreeModeSet(value) {
+    let statusValue: string;
+    if (value === 1) {
+      statusValue = this.windFreeMode.Off;
+      this.fanV2Service.getCharacteristic(this.platform.Characteristic.CurrentFanState)
+        .updateValue(this.platform.Characteristic.CurrentFanState.BLOWING_AIR);
+    } else {
+      statusValue = this.windFreeMode.windFree;
+      this.fanV2Service.getCharacteristic(this.platform.Characteristic.CurrentFanState)
+        .updateValue(this.platform.Characteristic.CurrentFanState.IDLE);
+    }
+    await SamsungAPI.setWindFreeMode(this.accessory.context.device.deviceId, statusValue, this.accessory.context.token);
+  }
+
+
+  /**
    * Handle requests to get the current value of the "Swing Mode" characteristic
    */
   async handleSwingModeGet() {
@@ -532,8 +615,13 @@ export class SamsungACPlatformAccessory {
           currentValue = this.platform.Characteristic.SwingMode.SWING_DISABLED;
         }
 
-        this.fanV2Service.getCharacteristic(this.platform.Characteristic.SwingMode)
-          .updateValue(currentValue);
+        if (this.platform.config.windFreeSupported) {
+          this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.SwingMode)
+            .updateValue(currentValue);
+        } else {
+          this.fanV2Service.getCharacteristic(this.platform.Characteristic.SwingMode)
+            .updateValue(currentValue);
+        }
 
       }).catch((error) => {
         this.platform.log.warn(error);
