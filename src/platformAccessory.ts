@@ -5,6 +5,7 @@ import { SamsungAPI } from './samsungApi';
 
 export class SamsungACPlatformAccessory {
   private heaterCoolerService: Service;
+  private humidityService: Service | undefined;
 
   private states = {
     On: 'on',
@@ -20,6 +21,7 @@ export class SamsungACPlatformAccessory {
   };
 
   private defaultTemperature = 21;
+  private defaultHumidity = 40;
 
   constructor(
     private readonly platform: SamsungAC,
@@ -66,6 +68,17 @@ export class SamsungACPlatformAccessory {
       .setProps(temperatureProps)
       .onSet(this.handleCoolingTemperatureSet.bind(this))
       .onGet(this.handleHeatingTemperatureGet.bind(this));
+
+    /**
+     *  Humidity Service if enabled
+     */
+    if (this.platform.config.showHumidity) {
+      this.humidityService = this.accessory.getService(this.platform.Service.HumiditySensor)
+        || this.accessory.addService(this.platform.Service.HumiditySensor);
+
+      this.humidityService.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+        .onGet(this.handleCurrentHumidityGet.bind(this));
+    }
   }
 
   /**
@@ -174,6 +187,26 @@ export class SamsungACPlatformAccessory {
     }
 
     await SamsungAPI.setDeviceMode(this.accessory.context.device.deviceId, modeValue, this.accessory.context.token);
+  }
+
+  /**
+   * Handle requests to get the current value of the "Current Humidity" characteristic
+   */
+  async handleCurrentHumidityGet() {
+    // set this to a valid value for CurrentRelativeHumidity
+    let currentValue = this.defaultHumidity;
+    await SamsungAPI.getDeviceHumidity(this.accessory.context.device.deviceId, this.accessory.context.token)
+      .then((humidity) => {
+        currentValue = humidity;
+        if (this.humidityService) {
+          this.humidityService.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+            .updateValue(currentValue);
+        }
+      }).catch((error) => {
+        this.platform.log.warn(error);
+      });
+
+    return currentValue;
   }
 
   /**

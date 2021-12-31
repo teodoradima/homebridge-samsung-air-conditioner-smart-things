@@ -22,6 +22,12 @@
         "type": "string",
         "required": true,
         "default": "C"
+      },
+      "showHumidity": {
+        "title": "Show humidity values",
+        "type": "boolean",
+        "required": true,
+        "default": false
       }
     }
   }
