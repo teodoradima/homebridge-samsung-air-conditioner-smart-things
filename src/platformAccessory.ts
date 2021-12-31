@@ -184,7 +184,7 @@ export class SamsungACPlatformAccessory {
     SamsungAPI.getDeviceTemperature(this.accessory.context.device.deviceId, this.accessory.context.token)
       .then((temperature) => {
         if (this.accessory.context.temperatureUnit === 'F') {
-          temperature = this.toCelsius(temperature);
+          temperature = SamsungACPlatformAccessory.toCelsius(temperature);
         }
         this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
           .updateValue(temperature);
@@ -200,7 +200,7 @@ export class SamsungACPlatformAccessory {
     SamsungAPI.getDesiredTemperature(this.accessory.context.device.deviceId, this.accessory.context.token)
       .then((temperature) => {
         if (this.accessory.context.temperatureUnit === 'F') {
-          temperature = this.toCelsius(temperature);
+          temperature = SamsungACPlatformAccessory.toCelsius(temperature);
         }
         this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
           .updateValue(temperature);
@@ -217,7 +217,7 @@ export class SamsungACPlatformAccessory {
     SamsungAPI.getDesiredTemperature(this.accessory.context.device.deviceId, this.accessory.context.token)
       .then((temperature) => {
         if (this.accessory.context.temperatureUnit === 'F') {
-          temperature = this.toCelsius(temperature);
+          temperature = SamsungACPlatformAccessory.toCelsius(temperature);
         }
         this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
           .updateValue(temperature);
@@ -232,16 +232,16 @@ export class SamsungACPlatformAccessory {
   async handleCoolingTemperatureSet(temp) {
     // set this to a valid value for DesiredTemperature
     if (this.accessory.context.temperatureUnit === 'F') {
-      temp = this.toFahrenheit(temp);
+      temp = SamsungACPlatformAccessory.toFahrenheit(temp);
     }
     await SamsungAPI.setDesiredTemperature(this.accessory.context.device.deviceId, temp, this.accessory.context.token);
   }
 
-  private toCelsius(fTemperature) {
+  private static toCelsius(fTemperature) {
     return Math.round((5/9) * (fTemperature - 32));
   }
 
-  private toFahrenheit(cTemperature){
+  private static toFahrenheit(cTemperature){
     return Math.round((cTemperature * 1.8) + 32);
   }
 }
