@@ -51,19 +51,19 @@ export class SamsungACPlatformAccessory {
     this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .onGet(this.handleCurrentTemperatureGet.bind(this));
 
-    const threshholdProps = {
+    const temperatureProps = {
       minValue: 16,
       maxValue: 30,
       minStep: 1,
     };
 
     this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
-      .setProps(threshholdProps)
+      .setProps(temperatureProps)
       .onSet(this.handleCoolingTemperatureSet.bind(this))
       .onGet(this.handleCoolingTemperatureGet.bind(this));
 
     this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
-      .setProps(threshholdProps)
+      .setProps(temperatureProps)
       .onSet(this.handleCoolingTemperatureSet.bind(this))
       .onGet(this.handleHeatingTemperatureGet.bind(this));
   }
