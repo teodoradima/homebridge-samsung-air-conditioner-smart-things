@@ -4,7 +4,7 @@ import { SamsungAC } from './platform';
 import { SamsungAPI } from './samsungApi';
 
 export class SamsungACPlatformAccessory {
-  private service: Service;
+  private heaterCoolerService: Service;
 
   private states = {
     On: 'on',
@@ -31,24 +31,24 @@ export class SamsungACPlatformAccessory {
       .setCharacteristic(this.platform.Characteristic.Model, accessory.context.device.deviceTypeName)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, accessory.context.device.deviceId);
 
-    this.service = this.accessory.getService(this.platform.Service.HeaterCooler)
+    this.heaterCoolerService = this.accessory.getService(this.platform.Service.HeaterCooler)
       || this.accessory.addService(this.platform.Service.HeaterCooler);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.label);
+    this.heaterCoolerService.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.label);
 
     // register handlers for the On/Off Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.Active)
+    this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.Active)
       .onSet(this.handleActiveSet.bind(this))
       .onGet(this.handleActiveGet.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState)
+    this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState)
       .onGet(this.handleCurrentHeaterCoolerStateGet.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
+    this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
       .onGet(this.handleTargetHeaterCoolerStateGet.bind(this))
       .onSet(this.handleTargetHeaterCoolerStateSet.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+    this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .onGet(this.handleCurrentTemperatureGet.bind(this));
 
     const threshholdProps = {
@@ -57,12 +57,12 @@ export class SamsungACPlatformAccessory {
       minStep: 1,
     };
 
-    this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+    this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
       .setProps(threshholdProps)
       .onSet(this.handleCoolingTemperatureSet.bind(this))
       .onGet(this.handleCoolingTemperatureGet.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
+    this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
       .setProps(threshholdProps)
       .onSet(this.handleCoolingTemperatureSet.bind(this))
       .onGet(this.handleHeatingTemperatureGet.bind(this));
@@ -77,7 +77,7 @@ export class SamsungACPlatformAccessory {
     SamsungAPI.getDeviceStatus(this.accessory.context.device.deviceId, this.accessory.context.token)
       .then((status) => {
         currentValue = status === this.states.Off ? currentValue : this.platform.Characteristic.Active.ACTIVE;
-        this.service.getCharacteristic(this.platform.Characteristic.Active)
+        this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.Active)
           .updateValue(currentValue);
       }).catch((error) => {
         this.platform.log.warn(error);
@@ -118,7 +118,7 @@ export class SamsungACPlatformAccessory {
           }
         }
 
-        this.service.getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState)
+        this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState)
           .updateValue(currentValue);
       }).catch((error) => {
         this.platform.log.warn(error);
@@ -148,7 +148,7 @@ export class SamsungACPlatformAccessory {
           }
         }
 
-        this.service.getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
+        this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.TargetHeaterCoolerState)
           .updateValue(currentValue);
       }).catch((error) => {
         this.platform.log.warn(error);
@@ -186,7 +186,7 @@ export class SamsungACPlatformAccessory {
         if (this.accessory.context.temperatureUnit === 'F') {
           temperature = this.toCelsius(temperature);
         }
-        this.service.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+        this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
           .updateValue(temperature);
       }).catch((error) => {
         this.platform.log.warn(error);
@@ -202,7 +202,7 @@ export class SamsungACPlatformAccessory {
         if (this.accessory.context.temperatureUnit === 'F') {
           temperature = this.toCelsius(temperature);
         }
-        this.service.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
+        this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CoolingThresholdTemperature)
           .updateValue(temperature);
       }).catch((error) => {
         this.platform.log.warn(error);
@@ -219,7 +219,7 @@ export class SamsungACPlatformAccessory {
         if (this.accessory.context.temperatureUnit === 'F') {
           temperature = this.toCelsius(temperature);
         }
-        this.service.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
+        this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.HeatingThresholdTemperature)
           .updateValue(temperature);
       }).catch((error) => {
         this.platform.log.warn(error);
