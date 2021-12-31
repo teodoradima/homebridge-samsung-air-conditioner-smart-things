@@ -156,11 +156,18 @@ export class SamsungACPlatformAccessory {
   handleHeaterCoolerActiveGet() {
     // set this to a valid value for Active
     let currentValue = this.platform.Characteristic.Active.INACTIVE;
-    SamsungAPI.getDeviceStatus(this.accessory.context.device.deviceId, this.accessory.context.token)
+    await SamsungAPI.getDeviceStatus(this.accessory.context.device.deviceId, this.accessory.context.token)
       .then((status) => {
-        currentValue = status === this.states.Off ? currentValue : this.platform.Characteristic.Active.ACTIVE;
-        this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.Active)
-          .updateValue(currentValue);
+        if (status === this.states.On) {
+          return this.handleCurrentHeaterCoolerStateGet();
+        } else {
+          return this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE;
+        }
+      }).then((currentMode) => {
+        // The heater cooler system is not active if only the fan is operating
+        if (currentMode !== this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE) {
+          currentValue = this.platform.Characteristic.Active.ACTIVE;
+        }
       }).catch((error) => {
         this.platform.log.warn(error);
       });
@@ -172,8 +179,27 @@ export class SamsungACPlatformAccessory {
    * Handle requests to set the "Active" characteristic of the Heater Cooler Service
    */
   async handleHeaterCoolerActiveSet(value) {
-    const statusValue = value === 1 ? this.states.On : this.states.Off ;
+    let statusValue: string;
+    if (value === this.platform.Characteristic.Active.ACTIVE) {
+      statusValue = this.states.On;
+      if (await this.handleCurrentHeaterCoolerStateGet() === this.platform.Characteristic.CurrentHeaterCoolerState.INACTIVE) {
+        // Fan only mode is turned on so far but A/C system was request to be turned on
+        this.handleTargetHeaterCoolerStateSet(this.platform.Characteristic.TargetHeaterCoolerState.AUTO)
+          .then(() => this.handleRotationSpeedGet());
+      }
+      // windFree mode (if supported) cannot be activated directly, the device will start in normal mode
+      this.fanV2Service.getCharacteristic(this.platform.Characteristic.CurrentFanState)
+        .updateValue(this.platform.Characteristic.CurrentFanState.BLOWING_AIR);
+    } else {
+      statusValue = this.states.Off;
+      this.fanV2Service.getCharacteristic(this.platform.Characteristic.CurrentFanState)
+        .updateValue(this.platform.Characteristic.CurrentFanState.INACTIVE);
+    }
     await SamsungAPI.setDeviceStatus(this.accessory.context.device.deviceId, statusValue, this.accessory.context.token);
+
+    // Take the same input value for the fan service. Either, the device is now turned on or off completely
+    this.fanV2Service.getCharacteristic(this.platform.Characteristic.Active)
+      .updateValue(value);
   }
 
   /**
@@ -256,6 +282,8 @@ export class SamsungACPlatformAccessory {
     }
 
     await SamsungAPI.setDeviceMode(this.accessory.context.device.deviceId, modeValue, this.accessory.context.token);
+    // The device (and the fan) is now turned on
+    await this.handleHeaterCoolerActiveSet(this.platform.Characteristic.Active.ACTIVE);
   }
 
   /**
