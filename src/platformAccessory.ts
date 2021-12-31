@@ -38,8 +38,8 @@ export class SamsungACPlatformAccessory {
 
     // register handlers for the On/Off Characteristic
     this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.Active)
-      .onSet(this.handleActiveSet.bind(this))
-      .onGet(this.handleActiveGet.bind(this));
+      .onSet(this.handleHeaterCoolerActiveSet.bind(this))
+      .onGet(this.handleHeaterCoolerActiveGet.bind(this));
 
     this.heaterCoolerService.getCharacteristic(this.platform.Characteristic.CurrentHeaterCoolerState)
       .onGet(this.handleCurrentHeaterCoolerStateGet.bind(this));
@@ -69,9 +69,9 @@ export class SamsungACPlatformAccessory {
   }
 
   /**
-   * Handle requests to get the current value of the "Active" characteristic
+   * Handle requests to get the current value of the "Active" characteristic of the Heater Cooler Service
    */
-  handleActiveGet() {
+  handleHeaterCoolerActiveGet() {
     // set this to a valid value for Active
     let currentValue = this.platform.Characteristic.Active.INACTIVE;
     SamsungAPI.getDeviceStatus(this.accessory.context.device.deviceId, this.accessory.context.token)
@@ -87,9 +87,9 @@ export class SamsungACPlatformAccessory {
   }
 
   /**
-   * Handle requests to set the "Active" characteristic
+   * Handle requests to set the "Active" characteristic of the Heater Cooler Service
    */
-  async handleActiveSet(value) {
+  async handleHeaterCoolerActiveSet(value) {
     const statusValue = value === 1 ? this.states.On : this.states.Off ;
     await SamsungAPI.setDeviceStatus(this.accessory.context.device.deviceId, statusValue, this.accessory.context.token);
   }
