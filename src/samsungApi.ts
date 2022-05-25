@@ -1,8 +1,9 @@
 import Axios from 'axios';
 
 const AC_DEVICE_NAME = '[room a/c] Samsung';
-
 const HOST = 'https://api.smartthings.com/v1/devices';
+
+// Samsung API documentation: https://developer-preview.smartthings.com/docs/devices/capabilities/capabilities-reference/
 export class SamsungAPI {
   static setToken(token) {
     return { headers: { Authorization: `Bearer ${token}` } };
@@ -20,6 +21,7 @@ export class SamsungAPI {
   }
 
   static async setDeviceStatus(deviceId, status, token) {
+    // possible values: 'on', 'off'
     const data = {
       'commands' : [{'capability': 'switch', 'command': status}],
     };
@@ -34,6 +36,13 @@ export class SamsungAPI {
     return temperature.value;
   }
 
+  static async getDeviceHumidity(deviceId, token) {
+    const {
+      data: { humidity = { } } = {},
+    } = await Axios.get(`${HOST}/${deviceId}/components/main/capabilities/relativeHumidityMeasurement/status`, this.setToken(token));
+    return humidity.value;
+  }
+
   static async getDeviceMode(deviceId, token) {
     const {
       data: { airConditionerMode = { } } = {},
@@ -42,8 +51,57 @@ export class SamsungAPI {
   }
 
   static async setDeviceMode(deviceId, mode, token) {
+    // possible modes: 'auto', 'dry', 'cool', 'heat', 'wind'
     const data = {
       'commands' : [{'capability': 'airConditionerMode', 'command': 'setAirConditionerMode', 'arguments': [mode]}],
+    };
+
+    await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
+  }
+
+  static async getFanMode(deviceId, token) {
+    const {
+      data: { fanMode = { } } = {},
+    } = await Axios.get(`${HOST}/${deviceId}/components/main/capabilities/airConditionerFanMode/status`, this.setToken(token));
+    return fanMode.value;
+  }
+
+  static async setFanMode(deviceId, mode, token) {
+    // possible values: 'auto', 'low', 'medium', 'high', 'turbo'
+    const data = {
+      'commands' : [{'capability': 'airConditionerFanMode', 'command': 'setFanMode', 'arguments': [mode]}],
+    };
+
+    await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
+  }
+
+  static async getFanOscillationMode(deviceId, token) {
+    const {
+      data: { fanOscillationMode = { } } = {},
+    } = await Axios.get(`${HOST}/${deviceId}/components/main/capabilities/fanOscillationMode/status`, this.setToken(token));
+    return fanOscillationMode.value;
+  }
+
+  static async setFanOscillationMode(deviceId, mode, token) {
+    // possible values: 'all', 'fixed', 'vertical', 'horizontal', 'indirect', 'direct', 'fixedCenter', 'fixedLeft', 'fixedRight', 'far'
+    const data = {
+      'commands' : [{'capability': 'fanOscillationMode', 'command': 'setFanOscillationMode', 'arguments': [mode]}],
+    };
+
+    await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
+  }
+
+  static async getWindFreeMode(deviceId, token) {
+    const {
+      data: { acOptionalMode = { } } = {},
+    } = await Axios.get(`${HOST}/${deviceId}/components/main/capabilities/custom.airConditionerOptionalMode/status`, this.setToken(token));
+    return acOptionalMode.value;
+  }
+
+  static async setWindFreeMode(deviceId, mode, token) {
+    // possible values: 'off', 'windFree'
+    const data = {
+      'commands' : [{'capability': 'custom.airConditionerOptionalMode', 'command': 'setAcOptionalMode', 'arguments': [mode]}],
     };
 
     await Axios.post(`${HOST}/${deviceId}/commands`, data, this.setToken(token));
@@ -57,6 +115,7 @@ export class SamsungAPI {
   }
 
   static async setDesiredTemperature(deviceId, temperature, token) {
+    // data type: integer
     const data = {
       'commands' : [{'capability': 'thermostatCoolingSetpoint', 'command': 'setCoolingSetpoint', 'arguments': [temperature]}],
     };
