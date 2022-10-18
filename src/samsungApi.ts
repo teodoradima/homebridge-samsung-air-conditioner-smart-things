@@ -1,6 +1,6 @@
 import Axios from 'axios';
 
-const AC_DEVICE_NAME = '[room a/c] Samsung';
+const AC_DEVICE_NAME = 'Samsung Room A/C';
 const HOST = 'https://api.smartthings.com/v1/devices';
 
 // Samsung API documentation: https://developer-preview.smartthings.com/docs/devices/capabilities/capabilities-reference/
