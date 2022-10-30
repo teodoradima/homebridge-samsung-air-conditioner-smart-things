@@ -11,6 +11,13 @@
         "required": true,
         "default": "homebridge-samsung-air-conditioner-smart-things"
       },
+      "deviceName": {
+        "title": "Device Name",
+        "description": "Device name as specified in the SmartThings app.",
+        "type": "string",
+        "required": false,
+        "default": ""
+      },
       "token": {
         "title": "Token",
         "type": "string",
