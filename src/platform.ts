@@ -31,7 +31,7 @@ export class SamsungAC implements DynamicPlatformPlugin {
   }
 
   discoverDevices() {
-    SamsungAPI.getDevices(this.config.token).then(samsungDevices => {
+    SamsungAPI.getDevices({ config: this.config, logger: this.log }).then(samsungDevices => {
       for (const device of samsungDevices) {
         const uuid = this.api.hap.uuid.generate(device.deviceId.toString());
 

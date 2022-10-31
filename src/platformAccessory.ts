@@ -73,8 +73,8 @@ export class SamsungACPlatformAccessory {
       .onGet(this.handleCurrentTemperatureGet.bind(this));
 
     const temperatureProps = {
-      minValue: 16,
-      maxValue: 30,
+      minValue: 10, // C = 50 F
+      maxValue: 30, // C = 86 F
       minStep: 1,
     };
 
@@ -428,8 +428,8 @@ export class SamsungACPlatformAccessory {
           }
         }).then((activeModeAC) => {
           if (activeModeAC === undefined) {
-          // The fan is already active and the previous Promise did not return a new Promise
-          // Nothing should be changed here, skipping the actions below
+            // The fan is already active and the previous Promise did not return a new Promise
+            // Nothing should be changed here, skipping the actions below
             return;
           } else if (activeModeAC === this.platform.Characteristic.Active.INACTIVE) {
             SamsungAPI.setDeviceMode(this.accessory.context.device.deviceId, this.deviceMode.Fan, this.accessory.context.token);
@@ -667,15 +667,15 @@ export class SamsungACPlatformAccessory {
    * Handle requests to set the "Swing Mode" characteristic
    */
   async handleSwingModeSet(value) {
-    const statusValue = value === 1 ? this.swingMode.All : this.swingMode.Fixed ;
+    const statusValue = value === 1 ? this.swingMode.All : this.swingMode.Fixed;
     await SamsungAPI.setFanOscillationMode(this.accessory.context.device.deviceId, statusValue, this.accessory.context.token);
   }
 
   private static toCelsius(fTemperature) {
-    return Math.round((5/9) * (fTemperature - 32));
+    return Math.round((5 / 9) * (fTemperature - 32));
   }
 
-  private static toFahrenheit(cTemperature){
+  private static toFahrenheit(cTemperature) {
     return Math.round((cTemperature * 1.8) + 32);
   }
 }
